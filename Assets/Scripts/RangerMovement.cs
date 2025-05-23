@@ -1,35 +1,70 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class RangerMovement : MonoBehaviour
 {
-    public float moveSpeed = 2f;
+    public bool FacingLeft { get { return facingLeft; } set { facingLeft = value; } }
+    //public static PlayerController Instance;
+    [SerializeField] private float moveSpeed = 1f;
+    private PlayerControl playerControl;
     private Vector2 movement;
     private Rigidbody2D rb;
-    private Animator animator;
 
-    void Awake()
+    private Animator anim;
+    public SpriteRenderer sprite;
+    private bool facingLeft = false;
+
+
+    private void Awake()
     {
+        playerControl = new PlayerControl();
         rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
+        anim = GetComponent<Animator>();
+        sprite = GetComponent<SpriteRenderer>();
     }
 
-    void Update()
+    private void OnEnable()
     {
-        movement = new Vector2(
-            Keyboard.current.leftArrowKey.isPressed ? -1 :
-            Keyboard.current.rightArrowKey.isPressed ? 1 : 0,
-            Keyboard.current.downArrowKey.isPressed ? -1 :
-            Keyboard.current.upArrowKey.isPressed ? 1 : 0
-        );
-
-        animator.SetBool("isWalking", movement != Vector2.zero);
+        playerControl.Enable();
     }
 
-    void FixedUpdate()
+    private void Update()
     {
-        rb.MovePosition(rb.position + movement.normalized * moveSpeed * Time.fixedDeltaTime);
+        PlayerInput();
+    }
+
+    private void FixedUpdate()
+    {
+        AdjustPlayerFacingDirection();
+        Move();
+    }
+
+    private void PlayerInput()
+    {
+        movement = playerControl.Movement.Move.ReadValue<Vector2>();
+
+        anim.SetFloat("moveX", movement.x);
+        anim.SetFloat("moveY", movement.y);
+    }
+
+    private void Move()
+    {
+        
+        rb.MovePosition(rb.position + movement * (moveSpeed * Time.fixedDeltaTime));
+    }
+
+    private void AdjustPlayerFacingDirection()
+    {
+        if (movement.x != 0f)
+        {
+            sprite.flipX = movement.x < 0f;
+            FacingLeft = true;
+        }
+        else if (movement.y != 0f)
+        {
+            sprite.flipX = false;
+            FacingLeft = false;
+        }
     }
 }
