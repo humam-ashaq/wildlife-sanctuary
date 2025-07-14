@@ -7,6 +7,9 @@ public class RangerMovement : MonoBehaviour
     public bool FacingLeft { get { return facingLeft; } set { facingLeft = value; } }
     //public static PlayerController Instance;
     [SerializeField] private float moveSpeed = 1f;
+    [SerializeField] private BoxCollider2D boxCollider;
+    [SerializeField] private LayerMask obstacleLayer;
+
     private PlayerControl playerControl;
     private Vector2 movement;
     private Rigidbody2D rb;
@@ -50,8 +53,15 @@ public class RangerMovement : MonoBehaviour
 
     private void Move()
     {
-        
-        rb.MovePosition(rb.position + movement * (moveSpeed * Time.fixedDeltaTime));
+
+        Vector2 targetPos = rb.position + movement * (moveSpeed * Time.fixedDeltaTime);
+
+        RaycastHit2D hit = Physics2D.BoxCast(rb.position, boxCollider.size, 0f, movement.normalized, (moveSpeed * Time.fixedDeltaTime), obstacleLayer);
+
+        if (hit.collider == null)
+        {
+            rb.MovePosition(targetPos);
+        }
     }
 
     private void AdjustPlayerFacingDirection()
@@ -67,4 +77,10 @@ public class RangerMovement : MonoBehaviour
             FacingLeft = false;
         }
     }
+
+    void OnCollisionEnter2D(Collision2D col)
+    {
+        Debug.Log("Nabrak: " + col.gameObject.name);
+    }
+
 }
